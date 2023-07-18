@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
 
@@ -119,12 +120,13 @@ public class EmployeeControllerIT {
 	}
 
 	public static Employee createEntity(EntityManager em) {
-		Employee employee = new Employee()
+		Employee employee = Employee.builder()
 				.userName(DEFAULT_USERNAME)
 				.birthDate(DEFAULT_BIRTH_DATE)
 				.country(DEFAULT_COUNTRY)
 				.phoneNumber(DEFAULT_PHONE_NUMBER)
-				.gender(DEFAULT_GENDER);
+				.gender(DEFAULT_GENDER)
+				.build();
 		return employee;
 	}
 	
@@ -149,7 +151,6 @@ public class EmployeeControllerIT {
 	
 		restEmployeeMockMvc
 		.perform(get(ENTITY_API_URL ))
-		.andDo(print())
 		.andExpect(status().isOk())
 		.andExpect(jsonPath("$[0].id").value(1L))
 		.andExpect(jsonPath("$[0].userName").value(DEFAULT_USERNAME))
@@ -164,7 +165,6 @@ public class EmployeeControllerIT {
 	void getNonExistingEmployeeByUserName() throws Exception {		 
 		MvcResult result  = restEmployeeMockMvc
 				.perform(get(ENTITY_API_URL + "/findByUserName/{userName}", "toto"))
-				.andDo(print())
 				.andExpect(status().is4xxClientError())
 				.andReturn();
 		Optional<UserNotFoundException> exception = Optional.ofNullable((UserNotFoundException) result.getResolvedException());
@@ -192,9 +192,6 @@ public class EmployeeControllerIT {
 		restEmployeeMockMvc
 				.perform(post(ENTITY_API_URL_SAVE).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(this.employeeDto)))
 				.andExpect(status().isAccepted());
-
-		Optional<Employee> employeeData = employeeService.findByUserName(DEFAULT_USERNAME);
-		assertThat(employeeData.get().getUserName()).isEqualTo(DEFAULT_USERNAME);
 		
 		 // Validate the Employee in the database
         List<Employee> employeeList = employeeRepository.findAll();
@@ -221,13 +218,13 @@ public class EmployeeControllerIT {
 		ApiException apiException = this.objectMapper.readValue(response, ApiException.class);
 		assertThat(apiException.getCode()).isEqualTo(400);
 		assertThat(apiException.getHttpStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
-		assertThat(apiException.getErrors().entrySet().stream().findFirst().get().getValue()).isEqualTo("userName should not be null");
+		assertThat(apiException.getErrors().entrySet().stream().findFirst().get().getValue()).isEqualTo("userName should not be null");	
 	}
 	
 	@Test
 	@Transactional
-	void checkUserNameIsNotEmpty() throws Exception {
-		this.employeeDto.setUserName("");
+	void checkUserNameSize() throws Exception {
+		this.employeeDto.setUserName("to");
 
 		MvcResult result = restEmployeeMockMvc
 				.perform(post(ENTITY_API_URL_SAVE).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(this.employeeDto)))        
@@ -238,7 +235,7 @@ public class EmployeeControllerIT {
 		ApiException apiException = this.objectMapper.readValue(response, ApiException.class);
 		assertThat(apiException.getCode()).isEqualTo(400);
 		assertThat(apiException.getHttpStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
-		assertThat(apiException.getErrors().entrySet().stream().findFirst().get().getValue()).isEqualTo("userName should not be empty");
+		assertThat(apiException.getErrors().entrySet().stream().findFirst().get().getValue()).isEqualTo("userName should be of 3 - 30 characters");
 	}
 	
 	@Test

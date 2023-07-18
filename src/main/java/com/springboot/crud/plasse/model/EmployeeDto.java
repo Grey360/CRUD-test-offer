@@ -1,9 +1,10 @@
 package com.springboot.crud.plasse.model;
 
 
-import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -17,7 +18,8 @@ public class EmployeeDto {
 	private Long id;
 	
 	@NotNull(message = "userName should not be null")
-	@NotEmpty(message = "userName should not be empty")
+	//@NotBlank(message = "userName should not be empty")
+    @Size(min = 3, max = 30, message = "userName should be of 3 - 30 characters")
 	private String userName;
 	
 	@NotNull(message = "birthDate should not be null")

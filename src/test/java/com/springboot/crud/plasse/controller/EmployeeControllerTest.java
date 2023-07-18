@@ -76,31 +76,34 @@ public class EmployeeControllerTest {
     }
     
     public static Employee createEntity(EntityManager em) {
-        Employee employee = new Employee()
+        Employee employee = Employee.builder()
             .userName(DEFAULT_USERNAME)
             .birthDate(DEFAULT_BIRTH_DATE)
             .country(DEFAULT_COUNTRY)
             .phoneNumber(DEFAULT_PHONE_NUMBER)
-            .gender(DEFAULT_GENDER);
+            .gender(DEFAULT_GENDER)
+            .build();
         return employee;
     }
    
 	@Test
 	public void shouldGetSize() {
-		Employee employeeOne = new Employee()
+		Employee employeeOne = Employee.builder()
 				.id(1L)
 	            .userName(DEFAULT_USERNAME)
 	            .birthDate(DEFAULT_BIRTH_DATE)
 	            .country(DEFAULT_COUNTRY)
 	            .phoneNumber(DEFAULT_PHONE_NUMBER)
-	            .gender(DEFAULT_GENDER);
-		Employee employeeTwo = new Employee()
+	            .gender(DEFAULT_GENDER)
+	            .build();
+		Employee employeeTwo = Employee.builder()
 				.id(2L)
 	            .userName(UPDATED_USERNAME)
 	            .birthDate(DEFAULT_BIRTH_DATE)
 	            .country(DEFAULT_COUNTRY)
 	            .phoneNumber(DEFAULT_PHONE_NUMBER)
-	            .gender(DEFAULT_GENDER);
+	            .gender(DEFAULT_GENDER)
+	            .build();
 		List<Employee> list = Arrays.asList(employeeOne, employeeTwo);
 		Mockito.when(employeeService.getEmployees()).thenReturn(list);
 
@@ -125,12 +128,13 @@ public class EmployeeControllerTest {
 	public void shouldUpdateEmployee() {	
 		EmployeeDto employeeDto = new EmployeeDto(1L, UPDATED_USERNAME, UPDATED_BIRTH_DATE_STR, UPDATED_COUNTRY, UPDATED_PHONE_NUMBER, UPDATED_GENDER);
 
-		Employee employee = new Employee()
+		Employee employee = Employee.builder()
 	            .userName(UPDATED_USERNAME)
 	            .birthDate(UPDATED_BIRTH_DATE)
 	            .country(DEFAULT_COUNTRY)
 	            .phoneNumber(DEFAULT_PHONE_NUMBER)
-	            .gender(DEFAULT_GENDER);
+	            .gender(DEFAULT_GENDER)
+	            .build();
 		
 		Optional<Employee> employeeData = Optional.of(employee);
 		Mockito.when(employeeService.findByUserName(employeeDto.getUserName())).thenReturn(employeeData);
