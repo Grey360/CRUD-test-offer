@@ -39,4 +39,35 @@ public class Employee {
 	@Enumerated(EnumType.STRING)
     @Column
     private Gender gender;
+	
+	public Employee id(Long id) {
+        this.setId(id);
+        return this;
+    }
+	
+	
+	public Employee userName(String userName) {
+        this.setUserName(userName);
+        return this;
+    }
+	
+	public Employee birthDate(LocalDate birthDate) {
+        this.setBirthDate(birthDate);
+        return this;
+    }
+	
+	public Employee country(String country) {
+        this.setCountry(country);
+        return this;
+    }
+	
+	public Employee phoneNumber(String phoneNumber) {
+        this.setPhoneNumber(phoneNumber);
+        return this;
+    }
+	
+	public Employee gender(Gender gender) {
+        this.setGender(gender);
+        return this;
+    }
 }
