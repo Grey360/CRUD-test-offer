@@ -33,6 +33,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
@@ -40,8 +41,11 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.springboot.crud.plasse.IntegrationTest;
 import com.springboot.crud.plasse.entity.Employee;
+import com.springboot.crud.plasse.exception.ApiException;
 import com.springboot.crud.plasse.exception.UserNotFoundException;
 import com.springboot.crud.plasse.mapper.EmployeeDTOMapper;
 import com.springboot.crud.plasse.model.EmployeeDto;
@@ -77,7 +81,10 @@ public class EmployeeControllerIT {
 	private static final String UPDATED_COUNTRY = "France";
 
 	private static final String ENTITY_API_URL = "/api/v1/user";
+	private static final String ENTITY_API_URL_SAVE = "/api/v1/user/save";
+
 	private static final String ENTITY_API_URL_ID = ENTITY_API_URL + "/{id}";
+	private static final String BAD_REQUEST = "BAD_REQUEST";
 
 	private static Random random = new Random();
 	private static AtomicLong count = new AtomicLong(random.nextInt() + (2 * Integer.MAX_VALUE));
@@ -88,8 +95,6 @@ public class EmployeeControllerIT {
 	@Autowired
 	private EmployeeService employeeService;
 
-	@Autowired
-	private EmployeeDTOMapper employeeMapper;
 
 	@Autowired
 	private EntityManager em;
@@ -99,12 +104,18 @@ public class EmployeeControllerIT {
 
 	private Employee employee;
 	
+	private EmployeeDto employeeDto;
+	
+	private ObjectMapper objectMapper;
+
     private ModelMapper modelMapper;
 
 
 	@BeforeEach
 	public void initTest() {
 		this.employee = createEntity(this.em);
+		this.employeeDto = createDto();
+		this.objectMapper = createMapper();
 	}
 
 	public static Employee createEntity(EntityManager em) {
@@ -116,6 +127,18 @@ public class EmployeeControllerIT {
 				.gender(DEFAULT_GENDER);
 		return employee;
 	}
+	
+	public static EmployeeDto createDto() {
+		return new EmployeeDto(1L, DEFAULT_USERNAME, DEFAULT_BIRTH_DATE_STR, DEFAULT_COUNTRY, DEFAULT_PHONE_NUMBER, DEFAULT_GENDER);
+	}
+	
+	public static ObjectMapper createMapper() {
+		//fix the error ‘Java 8 date/time type not supported by default‘ while serializing and deserializing Java 8
+		ObjectMapper objectMapper = new ObjectMapper();
+		objectMapper.registerModule(new JavaTimeModule());
+		return objectMapper;
+	}
+
 
 	@Test
 	@Transactional
@@ -145,8 +168,8 @@ public class EmployeeControllerIT {
 				.andExpect(status().is4xxClientError())
 				.andReturn();
 		Optional<UserNotFoundException> exception = Optional.ofNullable((UserNotFoundException) result.getResolvedException());
-		exception.ifPresent( (se) -> assertThat(se, is(notNullValue())));
-		exception.ifPresent( (se) -> assertThat(se, is(instanceOf(UserNotFoundException.class))));
+		exception.ifPresent( (ex) -> assertThat(ex, is(notNullValue())));
+		exception.ifPresent( (ex) -> assertThat(ex, is(instanceOf(UserNotFoundException.class))));
 	}
 	
 	@Test
@@ -154,9 +177,8 @@ public class EmployeeControllerIT {
 	void createEmployee() throws Exception {
 		employeeRepository.flush();
 	
-		EmployeeDto employeeDto = new EmployeeDto(1L, DEFAULT_USERNAME, DEFAULT_BIRTH_DATE_STR, DEFAULT_COUNTRY, DEFAULT_PHONE_NUMBER, DEFAULT_GENDER);
 		restEmployeeMockMvc
-				.perform(post(ENTITY_API_URL + "/save").contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(employeeDto)))
+				.perform(post(ENTITY_API_URL_SAVE).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(this.employeeDto)))
 				.andExpect(status().isCreated());
 	}
 	
@@ -167,9 +189,8 @@ public class EmployeeControllerIT {
         
         int databaseSizeBeforeUpdate = employeeRepository.findAll().size();
 
-		EmployeeDto employeeDto = new EmployeeDto(1L, DEFAULT_USERNAME, DEFAULT_BIRTH_DATE_STR, DEFAULT_COUNTRY, DEFAULT_PHONE_NUMBER, DEFAULT_GENDER);
 		restEmployeeMockMvc
-				.perform(post(ENTITY_API_URL + "/save").contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(employeeDto)))
+				.perform(post(ENTITY_API_URL_SAVE).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(this.employeeDto)))
 				.andExpect(status().isAccepted());
 
 		Optional<Employee> employeeData = employeeService.findByUserName(DEFAULT_USERNAME);
@@ -185,5 +206,74 @@ public class EmployeeControllerIT {
         assertThat(testEmployee.getPhoneNumber()).isEqualTo(DEFAULT_PHONE_NUMBER);
         assertThat(testEmployee.getGender()).isEqualTo(DEFAULT_GENDER);
 	}
+	
+	@Test
+	@Transactional
+	void checkUserNameIsRequired() throws Exception {
+		this.employeeDto.setUserName(null);
+
+		MvcResult result = restEmployeeMockMvc
+				.perform(post(ENTITY_API_URL_SAVE).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(this.employeeDto)))        
+				.andExpect(status().is4xxClientError()).andReturn();
+
+		String response = result.getResponse().getContentAsString();
+
+		ApiException apiException = this.objectMapper.readValue(response, ApiException.class);
+		assertThat(apiException.getCode()).isEqualTo(400);
+		assertThat(apiException.getHttpStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+		assertThat(apiException.getErrors().entrySet().stream().findFirst().get().getValue()).isEqualTo("userName should not be null");
+	}
+	
+	@Test
+	@Transactional
+	void checkUserNameIsNotEmpty() throws Exception {
+		this.employeeDto.setUserName("");
+
+		MvcResult result = restEmployeeMockMvc
+				.perform(post(ENTITY_API_URL_SAVE).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(this.employeeDto)))        
+				.andReturn();
+
+		String response = result.getResponse().getContentAsString();
+
+		ApiException apiException = this.objectMapper.readValue(response, ApiException.class);
+		assertThat(apiException.getCode()).isEqualTo(400);
+		assertThat(apiException.getHttpStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+		assertThat(apiException.getErrors().entrySet().stream().findFirst().get().getValue()).isEqualTo("userName should not be empty");
+	}
+	
+	@Test
+	@Transactional
+	void checkBirthDateIsNotNull() throws Exception {
+		this.employeeDto.setBirthDate(null);
+
+		MvcResult result = restEmployeeMockMvc
+				.perform(post(ENTITY_API_URL_SAVE).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(this.employeeDto)))        
+				.andExpect(status().is4xxClientError()).andReturn();
+
+		String response = result.getResponse().getContentAsString();
+
+		ApiException apiException = this.objectMapper.readValue(response, ApiException.class);
+		assertThat(apiException.getCode()).isEqualTo(400);
+		assertThat(apiException.getHttpStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+		assertThat(apiException.getErrors().entrySet().stream().findFirst().get().getValue()).isEqualTo("birthDate should not be null");
+	}
+	
+	@Test
+	@Transactional
+	void checkCountryMatchPattern() throws Exception {
+		this.employeeDto.setCountry("007");
+
+		MvcResult result = restEmployeeMockMvc
+				.perform(post(ENTITY_API_URL_SAVE).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(this.employeeDto)))        
+				.andExpect(status().is4xxClientError()).andReturn();
+
+		String response = result.getResponse().getContentAsString();
+
+		ApiException apiException = this.objectMapper.readValue(response, ApiException.class);
+		assertThat(apiException.getCode()).isEqualTo(400);
+		assertThat(apiException.getHttpStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+		assertThat(apiException.getErrors().entrySet().stream().findFirst().get().getValue()).isEqualTo("country should content only alphabetical characters");
+	}
+
 
 }
