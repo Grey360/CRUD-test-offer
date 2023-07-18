@@ -34,7 +34,7 @@ import com.springboot.crud.plasse.utils.DateUtils;
 public class EmployeeController {
 
     private ModelMapper modelMapper = new ModelMapper();
-
+    
 	@Autowired
 	private EmployeeService employeeService;
 	
@@ -67,6 +67,7 @@ public class EmployeeController {
 	@TrackLoggerTime
 	public ResponseEntity<Employee> createEmployee(@Valid @RequestBody EmployeeDto employeeUpdate) {	
 		Employee newEmployee = modelMapper.map(employeeUpdate, Employee.class);	
+		
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 		LocalDate birthDate = LocalDate.parse(employeeUpdate.getBirthDate(), formatter);
 		

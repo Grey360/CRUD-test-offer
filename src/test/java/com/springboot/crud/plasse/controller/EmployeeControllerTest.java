@@ -46,7 +46,7 @@ public class EmployeeControllerTest {
 
     private static final Gender DEFAULT_GENDER= Gender.MALE;
     private static final Gender UPDATED_GENDER = Gender.FEMALE;
-
+    
     private static final String DEFAULT_PHONE_NUMBER = "0600000000";
     private static final String UPDATED_PHONE_NUMBER = "0700000000";
 

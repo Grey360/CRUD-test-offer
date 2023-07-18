@@ -4,21 +4,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.Matchers.hasItem;
 import static org.junit.Assert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
@@ -26,20 +20,16 @@ import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
 
-import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -48,7 +38,6 @@ import com.springboot.crud.plasse.IntegrationTest;
 import com.springboot.crud.plasse.entity.Employee;
 import com.springboot.crud.plasse.exception.ApiException;
 import com.springboot.crud.plasse.exception.UserNotFoundException;
-import com.springboot.crud.plasse.mapper.EmployeeDTOMapper;
 import com.springboot.crud.plasse.model.EmployeeDto;
 import com.springboot.crud.plasse.model.Gender;
 import com.springboot.crud.plasse.repository.EmployeeRepository;
@@ -74,7 +63,7 @@ public class EmployeeControllerIT {
 
 	private static final Gender DEFAULT_GENDER= Gender.MALE;
 	private static final Gender UPDATED_GENDER = Gender.FEMALE;
-
+	
 	private static final String DEFAULT_PHONE_NUMBER = "0600000000";
 	private static final String UPDATED_PHONE_NUMBER = "0700000000";
 
@@ -110,13 +99,13 @@ public class EmployeeControllerIT {
 	private ObjectMapper objectMapper;
 
     private ModelMapper modelMapper;
-
+    
 
 	@BeforeEach
 	public void initTest() {
 		this.employee = createEntity(this.em);
 		this.employeeDto = createDto();
-		this.objectMapper = createMapper();
+		this.objectMapper = TestUtil.createObjectMapper();
 	}
 
 	public static Employee createEntity(EntityManager em) {
@@ -131,17 +120,17 @@ public class EmployeeControllerIT {
 	}
 	
 	public static EmployeeDto createDto() {
-		return new EmployeeDto(1L, DEFAULT_USERNAME, DEFAULT_BIRTH_DATE_STR, DEFAULT_COUNTRY, DEFAULT_PHONE_NUMBER, DEFAULT_GENDER);
+		EmployeeDto employeeDto = EmployeeDto.builder()
+				.id(1L)
+				.userName(DEFAULT_USERNAME)
+				.birthDate(DEFAULT_BIRTH_DATE_STR)
+				.country(DEFAULT_COUNTRY)
+				.phoneNumber(DEFAULT_PHONE_NUMBER)
+				.gender(DEFAULT_GENDER)
+				.build();
+		return employeeDto;
 	}
 	
-	public static ObjectMapper createMapper() {
-		//fix the error ‘Java 8 date/time type not supported by default‘ while serializing and deserializing Java 8
-		ObjectMapper objectMapper = new ObjectMapper();
-		objectMapper.registerModule(new JavaTimeModule());
-		return objectMapper;
-	}
-
-
 	@Test
 	@Transactional
 	void getEmployees() throws Exception {	
@@ -270,6 +259,45 @@ public class EmployeeControllerIT {
 		assertThat(apiException.getCode()).isEqualTo(400);
 		assertThat(apiException.getHttpStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
 		assertThat(apiException.getErrors().entrySet().stream().findFirst().get().getValue()).isEqualTo("country should content only alphabetical characters");
+	}
+
+	@Test
+	@Transactional
+	void checkGenderIsValid() throws Exception {
+		MvcResult result = restEmployeeMockMvc
+				.perform(post(ENTITY_API_URL_SAVE).contentType(MediaType.APPLICATION_JSON).content("{\r\n"
+						+ "    \"userName\": \"ludo\",\r\n"
+						+ "    \"birthDate\": \"1932-08-25\",\r\n"
+						+ "    \"country\": \"France\",\r\n"
+						+ "    \"gender\" : \"jkjk\"\r\n"
+						+ "}"))        
+				.andReturn();
+
+		String response = result.getResponse().getContentAsString();
+
+		ApiException apiException = this.objectMapper.readValue(response, ApiException.class);
+		assertThat(apiException.getCode()).isEqualTo(400);
+		assertThat(apiException.getHttpStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+		assertThat(apiException.getErrors().get("message")).isEqualTo("values accepted for Enum class:  MALE or FEMALE");
+	}
+
+	@Test
+	@Transactional
+	void createEmployeeFailed() throws Exception {
+		this.employeeDto.setUserName(null);
+		this.employeeDto.setBirthDate("1932-058-25");
+
+		MvcResult result = restEmployeeMockMvc
+				.perform(post(ENTITY_API_URL_SAVE).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(this.employeeDto)))        
+				.andExpect(status().is4xxClientError()).andReturn();
+
+		String response = result.getResponse().getContentAsString();
+
+		ApiException apiException = this.objectMapper.readValue(response, ApiException.class);
+		assertThat(apiException.getCode()).isEqualTo(400);
+		assertThat(apiException.getHttpStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+		assertThat(apiException.getErrors().get("userName")).isEqualTo("userName should not be null");
+		assertThat(apiException.getErrors().get("birthDate")).isEqualTo("birthDate should respect format yyyy-MM-dd");
 	}
 
 

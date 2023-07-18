@@ -1,9 +1,9 @@
 package com.springboot.crud.plasse.model;
 
+
 public enum Gender {
 	MALE("Male"),
-	FEMALE("Female"),
-	UNKNOWN("Unknown");
+	FEMALE("Female");
 
 	private final String name;
 
@@ -14,4 +14,5 @@ public enum Gender {
 	public String getName() {
 		return this.name;
 	}
+
 }
