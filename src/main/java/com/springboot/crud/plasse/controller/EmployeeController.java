@@ -28,9 +28,15 @@ import com.springboot.crud.plasse.model.EmployeeDto;
 import com.springboot.crud.plasse.service.EmployeeService;
 import com.springboot.crud.plasse.utils.DateUtils;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+
 
 @RestController
 @RequestMapping( "api/v1/user")
+@Api(value = "Set of endpoints for Creating, Retrieving, Updating and Deleting of employees.")
 public class EmployeeController {
 
     private ModelMapper modelMapper = new ModelMapper();
@@ -41,13 +47,18 @@ public class EmployeeController {
 	@GetMapping
 	@TrackExecutionTime
 	@TrackLoggerTime
-    public List<Employee> getEmployees(){
-        return employeeService.getEmployees();
-    }
+	@ApiOperation(value = "To access all employees")
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "The request has succeeded")
+	})
+	public List<Employee> getEmployees(){
+		return employeeService.getEmployees();
+	}
 	
 	@GetMapping ("/findById/{id}")
 	@TrackExecutionTime
 	@TrackLoggerTime
+	@ApiOperation(value = "To get an employee by id")
     public Employee getEmployeeById(@PathVariable Long id){
         return employeeService.findById(id);
     }
@@ -56,6 +67,11 @@ public class EmployeeController {
 	@GetMapping ("/findByUserName/{userName}")
 	@TrackExecutionTime
 	@TrackLoggerTime
+	@ApiOperation(value = "To get an employee by userName")
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "The request has succeeded."),
+			@ApiResponse(code = 404, message = "User not found.") 
+	})
 	public ResponseEntity<Employee> getEmployeeByUserName(@PathVariable String userName) {
 		Optional<Employee> employeeData = employeeService.findByUserName(userName); 
         return employeeData.map(response -> ResponseEntity.ok().body(employeeData.get()))
@@ -65,7 +81,13 @@ public class EmployeeController {
 	@PostMapping("/save")
 	@TrackExecutionTime
 	@TrackLoggerTime
-	public ResponseEntity<Employee> createEmployee(@Valid @RequestBody EmployeeDto employeeUpdate) {	
+	@ApiOperation(value = "To create or update an employee by passing an EmployeeDto")
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "A new employee has been created successfully"),
+			@ApiResponse(code = 202, message = "An employee has been updated successfully"),
+			@ApiResponse(code = 400, message = "Failed to register user") 
+	})
+	public ResponseEntity<Employee> saveEmployee(@Valid @RequestBody EmployeeDto employeeUpdate) {	
 		Employee newEmployee = modelMapper.map(employeeUpdate, Employee.class);	
 		
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -85,16 +107,23 @@ public class EmployeeController {
 					return ResponseEntity.status(HttpStatus.CREATED).body(newEmployee);
 				}
 			} catch(Exception e ) {
-				throw new ApiRequestException("Failed to register user with userName " + employeeUpdate.getUserName(), e);
+				throw new ApiRequestException("Failed to register user with userName " + employeeUpdate.getUserName(), e); //TODO dans quel cas on rentre dedans ?
 			}
 		} else {
-			return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+			throw new ApiRequestException("Failed to register user with userName " + employeeUpdate.getUserName() +" because it doesn't respect the requirements"); //send 422 ?
+			//return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 		}
 	}
 	
 	@DeleteMapping("/delete/{userName}")
 	@TrackExecutionTime
 	@TrackLoggerTime
+	@ApiOperation(value = "To delete an employee by userName")
+	@ApiResponses(value = {
+			@ApiResponse(code = 204, message = "Employee has been deleted successfully"),
+			@ApiResponse(code = 404, message = "Employee not found"),
+			@ApiResponse(code = 500, message = "Internal Server Error") 
+	})
 	public ResponseEntity<Employee> deleteEmployee(@PathVariable String userName) {
 		try {
 			Optional<Employee> employeeData = employeeService.findByUserName(userName);

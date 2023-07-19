@@ -120,7 +120,7 @@ public class EmployeeControllerTest {
 	@Test
 	public void shouldCreateEmployee() {		
 		EmployeeDto employeeDto = new EmployeeDto(null, DEFAULT_USERNAME, DEFAULT_BIRTH_DATE_STR, DEFAULT_COUNTRY, DEFAULT_PHONE_NUMBER, DEFAULT_GENDER);
-		ResponseEntity<Employee> employeeCreated = employeeController.createEmployee(employeeDto);
+		ResponseEntity<Employee> employeeCreated = employeeController.saveEmployee(employeeDto);
 		assertEquals( 201 , employeeCreated.getStatusCodeValue());
 	}
 	
@@ -139,7 +139,7 @@ public class EmployeeControllerTest {
 		Optional<Employee> employeeData = Optional.of(employee);
 		Mockito.when(employeeService.findByUserName(employeeDto.getUserName())).thenReturn(employeeData);
 	
-		ResponseEntity<Employee> employeeUpdated = employeeController.createEmployee(employeeDto);
+		ResponseEntity<Employee> employeeUpdated = employeeController.saveEmployee(employeeDto);
 		assertEquals( 202 , employeeUpdated.getStatusCodeValue());
 	}
 	
