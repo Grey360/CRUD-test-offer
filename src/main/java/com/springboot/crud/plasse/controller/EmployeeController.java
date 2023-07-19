@@ -110,7 +110,7 @@ public class EmployeeController {
 				throw new ApiRequestException("Failed to register user with userName " + employeeUpdate.getUserName(), e); //TODO dans quel cas on rentre dedans ?
 			}
 		} else {
-			throw new ApiRequestException("Failed to register user with userName " + employeeUpdate.getUserName() +" because it doesn't respect the requirements"); //send 422 ?
+			throw new ApiRequestException("Failed to register user with userName " + employeeUpdate.getUserName() +" because it doesn't respect the requirements");
 			//return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 		}
 	}

@@ -4,10 +4,12 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 import java.time.DateTimeException;
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.Collections;
 import java.util.Map;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -31,10 +33,10 @@ public class ApiExceptionHandler {
 	public ResponseEntity<Object> handleApiRequestException(Exception e, WebRequest request) {	
 		Map<String, String> errors = Collections.singletonMap( "message" , e.getMessage());
 		
-		ApiException apiException = new ApiException(CODE_HTTP_400, BAD_REQUEST, errors, ZonedDateTime.now());
+		ApiException apiException = new ApiException(CODE_HTTP_400, BAD_REQUEST, errors, LocalDateTime.now());
 		
 		if (e.getCause() != null && e.getCause() instanceof DateTimeException) {
-			apiException = new ApiException(CODE_HTTP_400, HttpStatus.BAD_REQUEST, errors, ZonedDateTime.now());
+			apiException = new ApiException(CODE_HTTP_400, HttpStatus.BAD_REQUEST, errors, LocalDateTime.now());
 			return new ResponseEntity<>(apiException, BAD_REQUEST);
 		}
 		
@@ -46,7 +48,7 @@ public class ApiExceptionHandler {
 	public ResponseEntity<Object> handleUserNotFoundException(UserNotFoundException e, WebRequest request) {	
 		Map<String, String> errors = Collections.singletonMap( "message" , e.getMessage());
 		
-		ApiException apiException = new ApiException(CODE_HTTP_404, HttpStatus.NOT_FOUND, errors, ZonedDateTime.now());
+		ApiException apiException = new ApiException(CODE_HTTP_404, HttpStatus.NOT_FOUND, errors, LocalDateTime.now());
 		return new ResponseEntity<>(apiException, NOT_FOUND);
 	}
 }

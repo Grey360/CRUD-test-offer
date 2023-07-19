@@ -11,6 +11,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.springboot.crud.plasse.model.Gender;
 
 import lombok.AllArgsConstructor;
@@ -34,6 +35,7 @@ public class Employee {
 	private String userName;
 	
     @Column(name = "birth_date")
+	@JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate birthDate;
 	
     @Column(name = "country")

@@ -28,6 +28,7 @@ public class EmployeeDto {
     @Pattern(regexp = "\\d{4}-\\d{2}-\\d{2}", message = "birthDate should respect format yyyy-MM-dd")
     private String birthDate;
 	
+	@NotNull(message = "country should not be null")
     @Pattern(regexp = "[a-zA-Z\\\\s']+", message = "country should content only alphabetical characters")
 	private String country;
 	

@@ -1,8 +1,10 @@
 package com.springboot.crud.plasse.exception.handler;
 
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,7 +33,7 @@ public class ValidationHandler extends ResponseEntityExceptionHandler {
 			String message = error.getDefaultMessage();
 			errors.putIfAbsent(fieldName, message);
 		});
-		ApiException apiException = new ApiException(400, HttpStatus.BAD_REQUEST, errors, ZonedDateTime.now());
+		ApiException apiException = new ApiException(400, HttpStatus.BAD_REQUEST, errors, LocalDateTime.now());
 		return new ResponseEntity<>(apiException, HttpStatus.BAD_REQUEST);
 	}
 
