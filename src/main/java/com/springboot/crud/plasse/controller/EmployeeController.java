@@ -26,7 +26,6 @@ import com.springboot.crud.plasse.exception.ApiRequestException;
 import com.springboot.crud.plasse.exception.UserNotFoundException;
 import com.springboot.crud.plasse.model.EmployeeDto;
 import com.springboot.crud.plasse.service.EmployeeService;
-import com.springboot.crud.plasse.utils.DateUtils;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -87,18 +86,12 @@ public class EmployeeController {
 	@ApiResponses(value = {
 			@ApiResponse(code = 201, message = "A new employee has been created successfully"),
 			@ApiResponse(code = 202, message = "An employee has been updated successfully"),
-			@ApiResponse(code = 400, message = "Failed to register user"),
 			@ApiResponse(code = 500, message = "Internal Server Error") 
 	})
 	public ResponseEntity<Employee> saveEmployee(@Valid @RequestBody EmployeeDto employeeUpdate) {	
-		Employee newEmployee = modelMapper.map(employeeUpdate, Employee.class);	
-
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-		LocalDate birthDate = LocalDate.parse(employeeUpdate.getBirthDate(), formatter);
-
-		if("France".equalsIgnoreCase(employeeUpdate.getCountry()) && DateUtils.isMajeur(birthDate)) {
+		try {
+			Employee newEmployee = modelMapper.map(employeeUpdate, Employee.class);	
 			Optional<Employee> employeeData = employeeService.findByUserName(employeeUpdate.getUserName());
-			newEmployee.setBirthDate(birthDate);
 
 			if (employeeData.isPresent()) {
 				newEmployee.setId(employeeData.get().getId());
@@ -107,9 +100,9 @@ public class EmployeeController {
 			} else {
 				newEmployee = employeeService.saveEmployee(newEmployee);
 				return ResponseEntity.status(HttpStatus.CREATED).body(newEmployee);
-			}		
-		} else {
-			throw new ApiRequestException("Failed to register user with userName " + employeeUpdate.getUserName() +" because it doesn't respect the requirements");
+			}	
+		} catch (Exception e) {
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	

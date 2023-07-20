@@ -1,9 +1,14 @@
 package com.springboot.crud.plasse.model;
 
 
+import java.time.LocalDate;
+
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Past;
 import javax.validation.constraints.Size;
+
+import com.springboot.crud.plasse.validator.BirthDateConstraint;
+import com.springboot.crud.plasse.validator.CountryConstraint;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,11 +30,12 @@ public class EmployeeDto {
 	private String userName;
 	
 	@NotNull(message = "birthDate should not be null")
-    @Pattern(regexp = "\\d{4}-\\d{2}-\\d{2}", message = "birthDate should respect format yyyy-MM-dd")
-    private String birthDate;
+	@BirthDateConstraint(message = "must be at least 18 years old")
+	@Past(message = "birthDate must be in the past")
+    private LocalDate birthDate;
 	
 	@NotNull(message = "country should not be null")
-    @Pattern(regexp = "[a-zA-Z\\\\s']+", message = "country should content only alphabetical characters")
+	@CountryConstraint(message = "must be french")
 	private String country;
 	
 	private String phoneNumber;

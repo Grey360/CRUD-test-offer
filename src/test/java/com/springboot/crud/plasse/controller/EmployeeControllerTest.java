@@ -27,7 +27,6 @@ import com.springboot.crud.plasse.entity.Employee;
 import com.springboot.crud.plasse.exception.UserNotFoundException;
 import com.springboot.crud.plasse.model.EmployeeDto;
 import com.springboot.crud.plasse.model.Gender;
-import com.springboot.crud.plasse.repository.EmployeeRepository;
 import com.springboot.crud.plasse.service.EmployeeService;
 
 @Profile("test")
@@ -55,10 +54,7 @@ public class EmployeeControllerTest {
 	
 	@Autowired
 	private EmployeeController employeeController;
-	
-	@Autowired //TODO ou @MockBean ??
-	private EmployeeRepository employeeRepository;
-	
+
 	@MockBean
 	private EmployeeService employeeService;
 	
@@ -119,14 +115,14 @@ public class EmployeeControllerTest {
 	
 	@Test
 	public void shouldCreateEmployee() {		
-		EmployeeDto employeeDto = new EmployeeDto(null, DEFAULT_USERNAME, DEFAULT_BIRTH_DATE_STR, DEFAULT_COUNTRY, DEFAULT_PHONE_NUMBER, DEFAULT_GENDER);
+		EmployeeDto employeeDto = new EmployeeDto(null, DEFAULT_USERNAME, DEFAULT_BIRTH_DATE, DEFAULT_COUNTRY, DEFAULT_PHONE_NUMBER, DEFAULT_GENDER);
 		ResponseEntity<Employee> employeeCreated = employeeController.saveEmployee(employeeDto);
 		assertEquals( 201 , employeeCreated.getStatusCodeValue());
 	}
 	
 	@Test
 	public void shouldUpdateEmployee() {	
-		EmployeeDto employeeDto = new EmployeeDto(1L, UPDATED_USERNAME, UPDATED_BIRTH_DATE_STR, UPDATED_COUNTRY, UPDATED_PHONE_NUMBER, UPDATED_GENDER);
+		EmployeeDto employeeDto = new EmployeeDto(1L, UPDATED_USERNAME, UPDATED_BIRTH_DATE, UPDATED_COUNTRY, UPDATED_PHONE_NUMBER, UPDATED_GENDER);
 
 		Employee employee = Employee.builder()
 	            .userName(UPDATED_USERNAME)
@@ -160,29 +156,4 @@ public class EmployeeControllerTest {
 		ResponseEntity<Employee> employeeToDelete = employeeController.deleteEmployee(DEFAULT_USERNAME);
 		assertEquals( 404 , employeeToDelete.getStatusCodeValue());
 	}
-	
-//	@Test
-//	void shouldVerifySizeOfEmployeeAfterSavingOld() {
-//		Employee employeeOne = new Employee()
-//				.id(1L)
-//	            .userName(DEFAULT_USERNAME)
-//	            .birthDate(DEFAULT_BIRTH_DATE)
-//	            .country(DEFAULT_COUNTRY)
-//	            .phoneNumber(DEFAULT_PHONE_NUMBER)
-//	            .gender(DEFAULT_GENDER);
-//		Employee employeeTwo = new Employee()
-//				.id(2L)
-//	            .userName(UPDATED_USERNAME)
-//	            .birthDate(DEFAULT_BIRTH_DATE)
-//	            .country(DEFAULT_COUNTRY)
-//	            .phoneNumber(DEFAULT_PHONE_NUMBER)
-//	            .gender(DEFAULT_GENDER);
-//		employeeRepository.save(employeeOne);
-//		employeeRepository.save(employeeTwo);
-//
-//		List<Employee> result = employeeRepository.findAll();
-//		assertEquals( 2 , result.size());
-//	}
-	
-
 }
