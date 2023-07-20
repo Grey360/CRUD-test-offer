@@ -19,7 +19,7 @@ public class ExecutionTimeAdvice {
 		long start = System.currentTimeMillis();
 		Object o = proceedingJoinPoint.proceed();
 		long end = System.currentTimeMillis();
-		log.info("The method " + proceedingJoinPoint.getSignature().getName() + " was executed in " + (end -start) + " ms");
+		log.info("[ExecutionTimeAdvice] The method " + proceedingJoinPoint.getSignature().getName() + " was executed in " + (end -start) + " ms");
 		return o;
 	}
 	
@@ -27,6 +27,6 @@ public class ExecutionTimeAdvice {
 	public void afterThrowingAdvice(JoinPoint jp, Throwable ex){
 		long start = System.currentTimeMillis();
 		long end = System.currentTimeMillis();
-		log.info("The method " + jp.getSignature() + " throws a " + ex.getClass().getName() +" and was executed in " + (end -start) + " ms");
+		log.info("[ExecutionTimeAdvice] The method " + jp.getSignature() + " throws a " + ex.getClass().getName() +" and was executed in " + (end -start) + " ms");
 	}
 }

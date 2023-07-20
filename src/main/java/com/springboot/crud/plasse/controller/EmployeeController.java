@@ -49,7 +49,8 @@ public class EmployeeController {
 	@TrackLoggerTime
 	@ApiOperation(value = "To access all employees")
 	@ApiResponses(value = {
-			@ApiResponse(code = 200, message = "The request has succeeded")
+			@ApiResponse(code = 200, message = "The request has succeeded"),
+			@ApiResponse(code = 500, message = "Internal Server Error") 
 	})
 	public List<Employee> getEmployees(){
 		return employeeService.getEmployees();
@@ -69,8 +70,9 @@ public class EmployeeController {
 	@TrackLoggerTime
 	@ApiOperation(value = "To get an employee by userName")
 	@ApiResponses(value = {
-			@ApiResponse(code = 200, message = "The request has succeeded."),
-			@ApiResponse(code = 404, message = "User not found.") 
+			@ApiResponse(code = 200, message = "The request has succeeded"),
+			@ApiResponse(code = 404, message = "User not found"),
+			@ApiResponse(code = 500, message = "Internal Server Error") 
 	})
 	public ResponseEntity<Employee> getEmployeeByUserName(@PathVariable String userName) {
 		Optional<Employee> employeeData = employeeService.findByUserName(userName); 
@@ -85,33 +87,29 @@ public class EmployeeController {
 	@ApiResponses(value = {
 			@ApiResponse(code = 201, message = "A new employee has been created successfully"),
 			@ApiResponse(code = 202, message = "An employee has been updated successfully"),
-			@ApiResponse(code = 400, message = "Failed to register user") 
+			@ApiResponse(code = 400, message = "Failed to register user"),
+			@ApiResponse(code = 500, message = "Internal Server Error") 
 	})
 	public ResponseEntity<Employee> saveEmployee(@Valid @RequestBody EmployeeDto employeeUpdate) {	
 		Employee newEmployee = modelMapper.map(employeeUpdate, Employee.class);	
-		
+
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 		LocalDate birthDate = LocalDate.parse(employeeUpdate.getBirthDate(), formatter);
-		
+
 		if("France".equalsIgnoreCase(employeeUpdate.getCountry()) && DateUtils.isMajeur(birthDate)) {
 			Optional<Employee> employeeData = employeeService.findByUserName(employeeUpdate.getUserName());
-			try {
-				newEmployee.setBirthDate(birthDate);
+			newEmployee.setBirthDate(birthDate);
 
-				if (employeeData.isPresent()) {
-					newEmployee.setId(employeeData.get().getId());
-					newEmployee = employeeService.saveEmployee(newEmployee);
-					return ResponseEntity.status(HttpStatus.ACCEPTED).body(newEmployee);
-				} else {
-					newEmployee = employeeService.saveEmployee(newEmployee);
-					return ResponseEntity.status(HttpStatus.CREATED).body(newEmployee);
-				}
-			} catch(Exception e ) {
-				throw new ApiRequestException("Failed to register user with userName " + employeeUpdate.getUserName(), e); //TODO dans quel cas on rentre dedans ?
-			}
+			if (employeeData.isPresent()) {
+				newEmployee.setId(employeeData.get().getId());
+				newEmployee = employeeService.saveEmployee(newEmployee);
+				return ResponseEntity.status(HttpStatus.ACCEPTED).body(newEmployee);
+			} else {
+				newEmployee = employeeService.saveEmployee(newEmployee);
+				return ResponseEntity.status(HttpStatus.CREATED).body(newEmployee);
+			}		
 		} else {
 			throw new ApiRequestException("Failed to register user with userName " + employeeUpdate.getUserName() +" because it doesn't respect the requirements");
-			//return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 		}
 	}
 	
@@ -122,7 +120,8 @@ public class EmployeeController {
 	@ApiResponses(value = {
 			@ApiResponse(code = 204, message = "Employee has been deleted successfully"),
 			@ApiResponse(code = 404, message = "Employee not found"),
-			@ApiResponse(code = 500, message = "Internal Server Error") 
+			@ApiResponse(code = 500, message = "Internal Server Error")
+
 	})
 	public ResponseEntity<Employee> deleteEmployee(@PathVariable String userName) {
 		try {

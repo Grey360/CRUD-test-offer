@@ -12,17 +12,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Optional;
-import java.util.Random;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
-
 import javax.persistence.EntityManager;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.http.HttpStatus;
@@ -33,7 +27,6 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.springboot.crud.plasse.IntegrationTest;
 import com.springboot.crud.plasse.entity.Employee;
 import com.springboot.crud.plasse.exception.ApiException;
@@ -41,7 +34,6 @@ import com.springboot.crud.plasse.exception.UserNotFoundException;
 import com.springboot.crud.plasse.model.EmployeeDto;
 import com.springboot.crud.plasse.model.Gender;
 import com.springboot.crud.plasse.repository.EmployeeRepository;
-import com.springboot.crud.plasse.service.EmployeeService;
 
 
 /**
@@ -73,18 +65,8 @@ public class EmployeeControllerIT {
 	private static final String ENTITY_API_URL = "/api/v1/user";
 	private static final String ENTITY_API_URL_SAVE = "/api/v1/user/save";
 
-	private static final String ENTITY_API_URL_ID = ENTITY_API_URL + "/{id}";
-	private static final String BAD_REQUEST = "BAD_REQUEST";
-
-	private static Random random = new Random();
-	private static AtomicLong count = new AtomicLong(random.nextInt() + (2 * Integer.MAX_VALUE));
-
 	@Autowired
 	private EmployeeRepository employeeRepository;
-
-	@Autowired
-	private EmployeeService employeeService;
-
 
 	@Autowired
 	private EntityManager em;
@@ -97,10 +79,7 @@ public class EmployeeControllerIT {
 	private EmployeeDto employeeDto;
 	
 	private ObjectMapper objectMapper;
-
-    private ModelMapper modelMapper;
     
-
 	@BeforeEach
 	public void initTest() {
 		this.employee = createEntity(this.em);
@@ -154,6 +133,18 @@ public class EmployeeControllerIT {
 	void getNonExistingEmployeeByUserName() throws Exception {		 
 		MvcResult result  = restEmployeeMockMvc
 				.perform(get(ENTITY_API_URL + "/findByUserName/{userName}", "toto"))
+				.andExpect(status().is4xxClientError())
+				.andReturn();
+		Optional<UserNotFoundException> exception = Optional.ofNullable((UserNotFoundException) result.getResolvedException());
+		exception.ifPresent( (ex) -> assertThat(ex, is(notNullValue())));
+		exception.ifPresent( (ex) -> assertThat(ex, is(instanceOf(UserNotFoundException.class))));
+	}
+	
+	@Test
+	@Transactional
+	void getNonExistingEmployeeById() throws Exception {		 
+		MvcResult result  = restEmployeeMockMvc
+				.perform(get(ENTITY_API_URL + "/findById/{id}", 99L))
 				.andExpect(status().is4xxClientError())
 				.andReturn();
 		Optional<UserNotFoundException> exception = Optional.ofNullable((UserNotFoundException) result.getResolvedException());
