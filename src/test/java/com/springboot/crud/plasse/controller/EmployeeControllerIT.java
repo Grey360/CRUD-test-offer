@@ -10,11 +10,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.time.DateTimeException;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
+
 import javax.persistence.EntityManager;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -29,7 +28,6 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.springboot.crud.plasse.IntegrationTest;
 import com.springboot.crud.plasse.entity.Employee;
 import com.springboot.crud.plasse.exception.ApiException;
 import com.springboot.crud.plasse.exception.UserNotFoundException;
@@ -274,28 +272,47 @@ public class EmployeeControllerIT {
 		assertThat(apiException.getErrors().get("message")).isEqualTo("values accepted for Enum class:  MALE or FEMALE");
 	}
 
-//	@Test
-//	@Transactional
-//	void createEmployeeFailed() throws Exception {
-//		this.employeeDto.setUserName(null);
-//		
-//		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-//		LocalDate birthDate = LocalDate.parse("1932-058-25", formatter);
-//		
-//		this.employeeDto.setBirthDate(birthDate);
-//
-//		MvcResult result = restEmployeeMockMvc
-//				.perform(post(ENTITY_API_URL_SAVE).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(this.employeeDto)))        
-//				.andExpect(status().is4xxClientError()).andReturn();
-//
-//		String response = result.getResponse().getContentAsString();
-//
-//		ApiException apiException = this.objectMapper.readValue(response, ApiException.class);
-//		assertThat(apiException.getCode()).isEqualTo(400);
-//		assertThat(apiException.getHttpStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
-//		assertThat(apiException.getErrors().get("userName")).isEqualTo("userName should not be null");
-//		assertThat(apiException.getErrors().get("birthDate")).isEqualTo("birthDate should respect format yyyy-MM-dd");
-//	}
+	@Test
+	@Transactional
+	void createEmployeeFailed() throws Exception {
+		this.employeeDto.setUserName(null);
+		this.employeeDto.setBirthDate("19856-55-99");
+		this.employeeDto.setCountry("bulbizarre");
+		
+		MvcResult result = restEmployeeMockMvc
+				.perform(post(ENTITY_API_URL_SAVE).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(this.employeeDto)))        
+				.andExpect(status().is4xxClientError()).andReturn();
+
+		String response = result.getResponse().getContentAsString();
+
+		ApiException apiException = this.objectMapper.readValue(response, ApiException.class);
+		assertThat(apiException.getCode()).isEqualTo(400);
+		assertThat(apiException.getHttpStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+		assertThat(apiException.getErrors().get("userName")).isEqualTo("userName should not be null");
+		assertThat(apiException.getErrors().get("birthDate")).isEqualTo("birthDate should respect format yyyy-MM-dd");
+		assertThat(apiException.getErrors().get("country")).isEqualTo("must be french");
+	}
+	
+	@Test
+	@Transactional
+	void createEmployeeFailedFutureBirthDate() throws Exception {
+		this.employeeDto.setUserName(null);
+		this.employeeDto.setBirthDate("2032-08-03");
+		this.employeeDto.setCountry("bulbizarre");
+		
+		MvcResult result = restEmployeeMockMvc
+				.perform(post(ENTITY_API_URL_SAVE).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(this.employeeDto)))        
+				.andExpect(status().is4xxClientError()).andReturn();
+
+		String response = result.getResponse().getContentAsString();
+
+		ApiException apiException = this.objectMapper.readValue(response, ApiException.class);
+		assertThat(apiException.getCode()).isEqualTo(400);
+		assertThat(apiException.getHttpStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+		assertThat(apiException.getErrors().get("userName")).isEqualTo("userName should not be null");
+		assertThat(apiException.getErrors().get("birthDate")).isEqualTo("birthDate should not be a future date");
+		assertThat(apiException.getErrors().get("country")).isEqualTo("must be french");
+	}
 
 
 }

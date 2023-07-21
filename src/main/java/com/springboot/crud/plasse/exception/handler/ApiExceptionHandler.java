@@ -1,6 +1,5 @@
 package com.springboot.crud.plasse.exception.handler;
 
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 import java.time.LocalDateTime;
@@ -14,7 +13,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 
 import com.springboot.crud.plasse.exception.ApiException;
-import com.springboot.crud.plasse.exception.ApiRequestException;
 import com.springboot.crud.plasse.exception.UserNotFoundException;
 
 /**
@@ -23,19 +21,8 @@ import com.springboot.crud.plasse.exception.UserNotFoundException;
 @ControllerAdvice
 public class ApiExceptionHandler {
 	
-	private static final int CODE_HTTP_400 = 400;
 	private static final int CODE_HTTP_404 = 404;
 	
-
-	@ExceptionHandler(value = {ApiRequestException.class}) //TODO dans quel cas on passe dedans ?
-	public ResponseEntity<Object> handleApiRequestException(Exception e, WebRequest request) {	
-		Map<String, String> errors = Collections.singletonMap( "message" , e.getMessage());
-		
-		ApiException apiException = new ApiException(CODE_HTTP_400, BAD_REQUEST, errors, LocalDateTime.now());
-		
-		return new ResponseEntity<>(apiException, BAD_REQUEST);
-	}
-
 	@ExceptionHandler(value = {UserNotFoundException.class})
 	public ResponseEntity<Object> handleUserNotFoundException(UserNotFoundException e, WebRequest request) {	
 		Map<String, String> errors = Collections.singletonMap( "message" , e.getMessage());

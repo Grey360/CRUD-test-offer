@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.springboot.crud.plasse.advice.annotation.TrackExecutionTime;
 import com.springboot.crud.plasse.advice.annotation.TrackLoggerTime;
 import com.springboot.crud.plasse.entity.Employee;
-import com.springboot.crud.plasse.exception.ApiRequestException;
 import com.springboot.crud.plasse.exception.UserNotFoundException;
 import com.springboot.crud.plasse.model.EmployeeDto;
 import com.springboot.crud.plasse.service.EmployeeService;
