@@ -1,11 +1,12 @@
 package com.springboot.crud.plasse.model;
 
 
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
 import com.springboot.crud.plasse.validator.BirthDateConstraint;
 import com.springboot.crud.plasse.validator.CountryConstraint;
+import com.springboot.crud.plasse.validator.GenderConstraint;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,7 +23,7 @@ public class EmployeeDto {
 	
 	private Long id;
 	
-	@NotNull(message = "userName should not be null")
+	@NotBlank(message = "userName should not be null")
     @Size(min = 3, max = 30, message = "userName should be of 3 - 30 characters")
 	private String userName;
 	
@@ -34,6 +35,7 @@ public class EmployeeDto {
 	
 	private String phoneNumber;
 
-    private Gender gender;
+	@GenderConstraint(message = "invalid gender")
+    private String gender;
 
 }

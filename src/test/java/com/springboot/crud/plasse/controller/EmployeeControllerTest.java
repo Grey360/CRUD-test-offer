@@ -115,14 +115,14 @@ public class EmployeeControllerTest {
 	
 	@Test
 	public void shouldCreateEmployee() {		
-		EmployeeDto employeeDto = new EmployeeDto(null, DEFAULT_USERNAME, DEFAULT_BIRTH_DATE_STR, DEFAULT_COUNTRY, DEFAULT_PHONE_NUMBER, DEFAULT_GENDER);
+		EmployeeDto employeeDto = new EmployeeDto(null, DEFAULT_USERNAME, DEFAULT_BIRTH_DATE_STR, DEFAULT_COUNTRY, DEFAULT_PHONE_NUMBER, DEFAULT_GENDER.toString());
 		ResponseEntity<Employee> employeeCreated = employeeController.saveEmployee(employeeDto);
 		assertEquals( 201 , employeeCreated.getStatusCodeValue());
 	}
 	
 	@Test
 	public void shouldUpdateEmployee() {	
-		EmployeeDto employeeDto = new EmployeeDto(1L, UPDATED_USERNAME, UPDATED_BIRTH_DATE_STR, UPDATED_COUNTRY, UPDATED_PHONE_NUMBER, UPDATED_GENDER);
+		EmployeeDto employeeDto = new EmployeeDto(1L, UPDATED_USERNAME, UPDATED_BIRTH_DATE_STR, UPDATED_COUNTRY, UPDATED_PHONE_NUMBER, UPDATED_GENDER.toString());
 
 		Employee employee = Employee.builder()
 	            .userName(UPDATED_USERNAME)

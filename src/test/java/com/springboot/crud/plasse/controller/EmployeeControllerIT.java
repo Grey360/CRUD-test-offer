@@ -105,7 +105,7 @@ public class EmployeeControllerIT {
 				.birthDate(DEFAULT_BIRTH_DATE_STR)
 				.country(DEFAULT_COUNTRY)
 				.phoneNumber(DEFAULT_PHONE_NUMBER)
-				.gender(DEFAULT_GENDER)
+				.gender(DEFAULT_GENDER.toString())
 				.build();
 		return employeeDto;
 	}
@@ -269,7 +269,7 @@ public class EmployeeControllerIT {
 		ApiException apiException = this.objectMapper.readValue(response, ApiException.class);
 		assertThat(apiException.getCode()).isEqualTo(400);
 		assertThat(apiException.getHttpStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
-		assertThat(apiException.getErrors().get("message")).isEqualTo("values accepted for Enum class:  MALE or FEMALE");
+		assertThat(apiException.getErrors().get("gender")).isEqualTo("values accepted for Enum class:  MALE or FEMALE");
 	}
 
 	@Test
@@ -311,6 +311,29 @@ public class EmployeeControllerIT {
 		assertThat(apiException.getHttpStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
 		assertThat(apiException.getErrors().get("userName")).isEqualTo("userName should not be null");
 		assertThat(apiException.getErrors().get("birthDate")).isEqualTo("birthDate should not be a future date");
+		assertThat(apiException.getErrors().get("country")).isEqualTo("must be french");
+	}
+	
+	@Test
+	@Transactional
+	void createEmployeeMultipleFailed() throws Exception {
+		this.employeeDto.setUserName("p");
+		this.employeeDto.setBirthDate("29024-09-25");
+		this.employeeDto.setCountry("bulbizarre");
+		this.employeeDto.setGender("aa");
+		
+		MvcResult result = restEmployeeMockMvc
+				.perform(post(ENTITY_API_URL_SAVE).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(this.employeeDto)))        
+				.andExpect(status().is4xxClientError()).andReturn();
+
+		String response = result.getResponse().getContentAsString();
+
+		ApiException apiException = this.objectMapper.readValue(response, ApiException.class);
+		assertThat(apiException.getCode()).isEqualTo(400);
+		assertThat(apiException.getHttpStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+		assertThat(apiException.getErrors().get("userName")).isEqualTo("userName should be of 3 - 30 characters");
+		assertThat(apiException.getErrors().get("birthDate")).isEqualTo("birthDate should respect format yyyy-MM-dd");
+		assertThat(apiException.getErrors().get("gender")).isEqualTo("values accepted for Enum class:  MALE or FEMALE");
 		assertThat(apiException.getErrors().get("country")).isEqualTo("must be french");
 	}
 
