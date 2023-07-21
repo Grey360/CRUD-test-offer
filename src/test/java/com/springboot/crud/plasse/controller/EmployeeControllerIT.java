@@ -104,7 +104,7 @@ public class EmployeeControllerIT {
 		EmployeeDto employeeDto = EmployeeDto.builder()
 				.id(1L)
 				.userName(DEFAULT_USERNAME)
-				.birthDate(DEFAULT_BIRTH_DATE)
+				.birthDate(DEFAULT_BIRTH_DATE_STR)
 				.country(DEFAULT_COUNTRY)
 				.phoneNumber(DEFAULT_PHONE_NUMBER)
 				.gender(DEFAULT_GENDER)

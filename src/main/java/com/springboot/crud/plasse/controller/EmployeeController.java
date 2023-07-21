@@ -70,13 +70,12 @@ public class EmployeeController {
 	@ApiOperation(value = "To get an employee by userName")
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "The request has succeeded"),
-			@ApiResponse(code = 404, message = "User not found"),
-			@ApiResponse(code = 500, message = "Internal Server Error") 
+			@ApiResponse(code = 404, message = "User not found")
 	})
 	public ResponseEntity<Employee> getEmployeeByUserName(@PathVariable String userName) {
 		Optional<Employee> employeeData = employeeService.findByUserName(userName); 
-        return employeeData.map(response -> ResponseEntity.ok().body(employeeData.get()))
-                .orElseThrow(() -> new UserNotFoundException("The user with userName " + userName + " was not found"));
+		return employeeData.map(response -> ResponseEntity.ok().body(employeeData.get()))
+				.orElseThrow(() -> new UserNotFoundException("The user with userName " + userName + " was not found"));
 	}
 
 	@PostMapping("/save")
@@ -91,7 +90,12 @@ public class EmployeeController {
 	public ResponseEntity<Employee> saveEmployee(@Valid @RequestBody EmployeeDto employeeUpdate) {	
 		try {
 			Employee newEmployee = modelMapper.map(employeeUpdate, Employee.class);	
+			
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+			LocalDate birthDate = LocalDate.parse(employeeUpdate.getBirthDate(), formatter);
+				
 			Optional<Employee> employeeData = employeeService.findByUserName(employeeUpdate.getUserName());
+			newEmployee.setBirthDate(birthDate);
 
 			if (employeeData.isPresent()) {
 				newEmployee.setId(employeeData.get().getId());

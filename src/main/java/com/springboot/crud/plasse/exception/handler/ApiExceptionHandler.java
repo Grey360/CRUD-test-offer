@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 
-import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.springboot.crud.plasse.exception.ApiException;
 import com.springboot.crud.plasse.exception.ApiRequestException;
 import com.springboot.crud.plasse.exception.UserNotFoundException;
@@ -28,19 +27,12 @@ public class ApiExceptionHandler {
 	private static final int CODE_HTTP_404 = 404;
 	
 
-	@ExceptionHandler(value = {ApiRequestException.class, InvalidFormatException.class})
+	@ExceptionHandler(value = {ApiRequestException.class}) //TODO dans quel cas on passe dedans ?
 	public ResponseEntity<Object> handleApiRequestException(Exception e, WebRequest request) {	
 		Map<String, String> errors = Collections.singletonMap( "message" , e.getMessage());
 		
 		ApiException apiException = new ApiException(CODE_HTTP_400, BAD_REQUEST, errors, LocalDateTime.now());
 		
-		if (e.getCause() != null && e.getCause() instanceof InvalidFormatException) {		
-			errors = Collections.singletonMap( "birthDate" , "birthDate should respect format yyyy-MM-dd");
-			apiException = new ApiException(CODE_HTTP_400, HttpStatus.BAD_REQUEST, errors, LocalDateTime.now());
-			return new ResponseEntity<>(apiException, BAD_REQUEST);
-		}
-		
-
 		return new ResponseEntity<>(apiException, BAD_REQUEST);
 	}
 
