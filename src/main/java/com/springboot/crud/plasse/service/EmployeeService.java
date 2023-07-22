@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.springboot.crud.plasse.entity.Employee;
-import com.springboot.crud.plasse.exception.UserNotFoundException;
 import com.springboot.crud.plasse.repository.EmployeeRepository;
 
 @Service
@@ -26,9 +25,8 @@ public class EmployeeService {
 		return employeeRepository.findByUserName(userName);
 	}
 	
-	public Employee findById(Long id) {
-		return employeeRepository.findById(id)
-				.orElseThrow(() -> new UserNotFoundException("User by id " + id + " was not found"));
+	public Optional<Employee> findById(Long id) {
+		return employeeRepository.findById(id);
 	}
 
 	public Employee saveEmployee(Employee employee) {

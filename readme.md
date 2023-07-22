@@ -28,7 +28,7 @@ I use Spring AOP for logging and execution time.
 
 I handle custom Exceptions by using a custom exception Object which is ApiException.java to inform the client when a request is sent.
 
-I create custom validator such as BirthDateValidator to check birthdate respect some requirements. You can find also a validator for the country and the gender
+I create custom validator such as BirthDateValidator to check birthdate respects some requirements. You can find also a validator for the country and the gender
 
 
 

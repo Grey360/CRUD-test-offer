@@ -64,8 +64,14 @@ public class EmployeeController {
 	@TrackExecutionTime
 	@TrackLoggerTime
 	@ApiOperation(value = "To get an employee by id")
-    public Employee getEmployeeById(@PathVariable Long id){
-        return employeeService.findById(id);
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "The request has succeeded"),
+			@ApiResponse(code = 404, message = "User not found")
+	})
+    public ResponseEntity<Employee> getEmployeeById(@PathVariable Long id){
+		Optional<Employee> employeeData =  employeeService.findById(id);
+		return employeeData.map(response -> ResponseEntity.ok().body(employeeData.get()))
+				.orElseThrow(() -> new UserNotFoundException("User with id " + id + " was not found"));
     }
 	
 	
@@ -80,7 +86,7 @@ public class EmployeeController {
 	public ResponseEntity<Employee> getEmployeeByUserName(@PathVariable String userName) {
 		Optional<Employee> employeeData = employeeService.findByUserName(userName); 
 		return employeeData.map(response -> ResponseEntity.ok().body(employeeData.get()))
-				.orElseThrow(() -> new UserNotFoundException("The user with userName " + userName + " was not found"));
+				.orElseThrow(() -> new UserNotFoundException("User with userName " + userName + " was not found"));
 	}
 
 	@PostMapping("/save")
