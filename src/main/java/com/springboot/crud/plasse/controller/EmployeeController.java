@@ -33,7 +33,7 @@ import io.swagger.annotations.ApiResponses;
 
 
 @RestController
-@RequestMapping( "api/v1/user")
+@RequestMapping("api/v1/users")
 @Api(value = "Set of endpoints for Creating, Retrieving, Updating and Deleting of employees.")
 public class EmployeeController {
 
@@ -54,7 +54,7 @@ public class EmployeeController {
 		return employeeService.getEmployees();
 	}
 	
-	@GetMapping ("/findById/{id}")
+	@GetMapping("/{id}")
 	@TrackExecutionTime
 	@TrackLoggerTime
 	@ApiOperation(value = "To get an employee by id")
@@ -63,7 +63,7 @@ public class EmployeeController {
     }
 	
 	
-	@GetMapping ("/findByUserName/{userName}")
+	@GetMapping ("/username/{userName}")
 	@TrackExecutionTime
 	@TrackLoggerTime
 	@ApiOperation(value = "To get an employee by userName")
@@ -77,7 +77,7 @@ public class EmployeeController {
 				.orElseThrow(() -> new UserNotFoundException("The user with userName " + userName + " was not found"));
 	}
 
-	@PostMapping("/save")
+	@PostMapping
 	@TrackExecutionTime
 	@TrackLoggerTime
 	@ApiOperation(value = "To create or update an employee by passing an EmployeeDto")
@@ -88,28 +88,24 @@ public class EmployeeController {
 	})
 	public ResponseEntity<Employee> saveEmployee(@Valid @RequestBody EmployeeDto employeeUpdate) {	
 		try {
-			Employee newEmployee = modelMapper.map(employeeUpdate, Employee.class);	
-			
+			employeeUpdate.setPhoneNumber(employeeUpdate.getPhoneNumber().trim());
+			Employee employeeToSave = modelMapper.map(employeeUpdate, Employee.class);
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-			LocalDate birthDate = LocalDate.parse(employeeUpdate.getBirthDate(), formatter);
-				
-			Optional<Employee> employeeData = employeeService.findByUserName(employeeUpdate.getUserName());
-			newEmployee.setBirthDate(birthDate);
+			LocalDate birthDate = LocalDate.parse(employeeUpdate.getBirthDate().trim(), formatter);
+			employeeToSave.setBirthDate(birthDate);
 
-			if (employeeData.isPresent()) {
-				newEmployee.setId(employeeData.get().getId());
-				newEmployee = employeeService.saveEmployee(newEmployee);
-				return ResponseEntity.status(HttpStatus.ACCEPTED).body(newEmployee);
+			if (employeeService.findByUserName(employeeToSave.getUserName()).isPresent()) {
+				return new ResponseEntity<>(HttpStatus.CONFLICT);
 			} else {
-				newEmployee = employeeService.saveEmployee(newEmployee);
+				Employee newEmployee = employeeService.saveEmployee(employeeToSave);
 				return ResponseEntity.status(HttpStatus.CREATED).body(newEmployee);
-			}	
+			}
 		} catch (Exception e) {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	
-	@DeleteMapping("/delete/{userName}")
+	@DeleteMapping("/{userName}")
 	@TrackExecutionTime
 	@TrackLoggerTime
 	@ApiOperation(value = "To delete an employee by userName")
