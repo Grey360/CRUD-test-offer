@@ -48,10 +48,16 @@ public class EmployeeController {
 	@ApiOperation(value = "To access all employees")
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "The request has succeeded"),
-			@ApiResponse(code = 500, message = "Internal Server Error") 
+			@ApiResponse(code = 404, message = "No record in the database") 
 	})
-	public List<Employee> getEmployees(){
-		return employeeService.getEmployees();
+	public ResponseEntity<List<Employee>> getEmployees(){
+		List<Employee> employees = employeeService.getEmployees();
+
+		if(!employees.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.OK).body(employees);
+		} else {
+			throw new UserNotFoundException("No record in the database");
+		}				
 	}
 	
 	@GetMapping ("/findById/{id}")
