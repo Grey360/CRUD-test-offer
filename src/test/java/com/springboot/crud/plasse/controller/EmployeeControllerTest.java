@@ -81,7 +81,8 @@ public class EmployeeControllerTest {
             .build();
         return employee;
     }
-   
+    
+    
 	@Test
 	public void shouldGetSize() {
 		Employee employeeOne = Employee.builder()
@@ -103,8 +104,8 @@ public class EmployeeControllerTest {
 		List<Employee> list = Arrays.asList(employeeOne, employeeTwo);
 		Mockito.when(employeeService.getEmployees()).thenReturn(list);
 
-		List<Employee> result = employeeController.getEmployees();
-		assertEquals( 2 , result.size());
+		ResponseEntity<List<Employee>> result = employeeController.getEmployees();
+		assertEquals( 2 , result.getBody().size());
 	}
 	
 	@Test

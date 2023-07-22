@@ -6,7 +6,7 @@
 	},
 	"item": [
 		{
-			"name": "CRUD H2",
+			"name": "CRUD Spring boot app",
 			"item": [
 				{
 					"name": "Save employee",
@@ -106,7 +106,7 @@
 					"response": []
 				},
 				{
-					"name": "Get employee by userName Copy",
+					"name": "Get employee by userName",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},

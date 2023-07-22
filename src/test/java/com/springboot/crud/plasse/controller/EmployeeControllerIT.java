@@ -112,6 +112,15 @@ public class EmployeeControllerIT {
 	
 	@Test
 	@Transactional
+	public void shouldGetNoData() throws Exception {
+		employeeRepository.flush();
+
+		restEmployeeMockMvc
+				.perform(get(ENTITY_API_URL )).andExpect(status().isNotFound());
+	}
+	
+	@Test
+	@Transactional
 	void getEmployees() throws Exception {	
 		employeeRepository.flush();
 
