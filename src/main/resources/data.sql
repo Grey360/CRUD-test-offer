@@ -6,6 +6,6 @@ create table Employee (
 	birth_date DATE not null,
 	country varchar(100) not null,
 	phone_number varchar(10),
-	gender ENUM('MALE', 'FEMALE', 'UNKNOWN'),
+	gender ENUM('MALE', 'FEMALE'),
 	UNIQUE (user_name)
 );

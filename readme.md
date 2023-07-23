@@ -28,6 +28,9 @@ I use Spring AOP for logging and execution time.
 
 I handle custom Exceptions by using a custom exception Object which is ApiException.java to inform the client when a request is sent.
 
+I create custom validator such as BirthDateValidator to check birthdate respects some requirements. You can find also a validator for the country and the gender
+
+
 
 ## Development
 
@@ -51,6 +54,10 @@ And select
 ```
 Run As Spring Boot App
 ```
+
+## Database H2
+
+To connect to the database, just go to [http://localhost:8080/h2-console](http://localhost:8080/h2-console) and insert the credentials you can find in the application.properties
 
 
 ## Testing
