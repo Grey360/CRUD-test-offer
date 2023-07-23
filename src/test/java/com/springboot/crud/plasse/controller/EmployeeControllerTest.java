@@ -136,7 +136,7 @@ public class EmployeeControllerTest {
 		Mockito.when(employeeService.findByUserName(employeeDto.getUserName())).thenReturn(employeeData);
 	
 		ResponseEntity<Employee> employeeUpdated = employeeController.saveEmployee(employeeDto);
-		assertEquals( 202 , employeeUpdated.getStatusCodeValue());
+		assertEquals( 409 , employeeUpdated.getStatusCodeValue());
 	}
 	
 	@Test

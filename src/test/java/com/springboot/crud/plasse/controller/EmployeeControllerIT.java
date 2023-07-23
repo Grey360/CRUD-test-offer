@@ -62,8 +62,8 @@ public class EmployeeControllerIT {
 	private static final String DEFAULT_COUNTRY = "France";
 	private static final String UPDATED_COUNTRY = "France";
 
-	private static final String ENTITY_API_URL = "/api/v1/user";
-	private static final String ENTITY_API_URL_SAVE = "/api/v1/user/save";
+	private static final String ENTITY_API_URL = "/api/v1/users";
+	private static final String ENTITY_API_URL_SAVE = "/api/v1/users";
 
 	@Autowired
 	private EmployeeRepository employeeRepository;
@@ -171,7 +171,7 @@ public class EmployeeControllerIT {
 
 		restEmployeeMockMvc
 				.perform(post(ENTITY_API_URL_SAVE).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(this.employeeDto)))
-				.andExpect(status().isAccepted());
+				.andExpect(status().isConflict());
 		
 		 // Validate the Employee in the database
         List<Employee> employeeList = employeeRepository.findAll();
